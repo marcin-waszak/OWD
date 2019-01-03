@@ -1,0 +1,13 @@
+reset;
+
+model owd.mod;
+data owd.dat;
+
+option solver cplex;
+
+solve;
+
+display cost;
+display active;
+display load;
+
