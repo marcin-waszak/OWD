@@ -41,6 +41,6 @@ subject to st5 {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generat
   active[p,t,i] = 0 ==> load[p,t,i] = 0;
 
   
-var cost = sum {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generators[t]} periods_length[p] * cost_linear[t] * load[p,t,i];
+var cost = sum {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generators[t]} periods_length[p] * (cost_min[t] + cost_linear[t] * (load[p,t,i] - load_min[t]));
 
 minimize model: cost;
