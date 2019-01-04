@@ -11,7 +11,7 @@ display cost_total;
 display active;
 display started;
 display cost_launch;
-#display load;
+display load;
 
 display production;
 display tot_prod;

@@ -41,8 +41,13 @@ subject to st5 {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generat
   active[p,t,i] = 0 ==> load[p,t,i] = 0;
 
 # set started flag
-var started {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generators[t]} = max(active[p,t,i] - active[((p+3) mod 5)+1,t,i], 0);
-var cost_launch {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generators[t]} = cost_start[t] * started[p,t,i];
-var cost_total = sum {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generators[t]} (periods_length[p] * (cost_min[t] + cost_linear[t] * (load[p,t,i] - load_min[t])) + cost_launch[p,t,i]);
+var toggled {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generators[t]} = active[p,t,i] - active[((p+3) mod PERIODS)+1,t,i];
+var started {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generators[t]} = (toggled[p,t,i]^2 + toggled[p,t,i]) / 2;
 
+# calculate total cost
+var cost_launch {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generators[t]} = cost_start[t] * started[p,t,i];
+var cost_usage {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generators[t]} = cost_min[t] + cost_linear[t] * (load[p,t,i] - load_min[t]);
+var cost_total = sum {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generators[t]} (periods_length[p] * cost_usage[p,t,i] + cost_launch[p,t,i]);
+
+# objective function
 minimize model: cost_total;
