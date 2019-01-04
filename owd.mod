@@ -1,10 +1,10 @@
 model;
 
 # parameters
+set GENERATOR_TYPES ordered;
 param PERIODS;
 param periods_demand {1..PERIODS};
 param periods_length {1..PERIODS};
-set GENERATOR_TYPES ordered;
 param available_generators {GENERATOR_TYPES};
 param load_min {GENERATOR_TYPES};
 param load_max {GENERATOR_TYPES};
@@ -16,9 +16,11 @@ param cost_start {GENERATOR_TYPES};
 var active {1..PERIODS, t in GENERATOR_TYPES, 1..available_generators[t]} binary;
 var load {1..PERIODS, t in GENERATOR_TYPES, 1..available_generators[t]};
 
-# helper variables
+# helper parameters and variables
+param demand_total = sum {p in 1..PERIODS} periods_demand[p];
 var production {p in 1..PERIODS} = sum {t in GENERATOR_TYPES, i in 1..available_generators[t]} load[p,t,i];
-var tot_prod = sum {p in 1..PERIODS}  production[p];
+var production_total = sum {p in 1..PERIODS} production[p];
+var demand_increase = production_total / demand_total;
 
 # loadmin
 subject to st1 {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generators[t]}:
@@ -32,7 +34,7 @@ subject to st2 {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generat
 subject to st3 {p in 1..PERIODS}:
   sum {i in 1..available_generators["T1"]} active[p,"T1",i] <= sum {i in 1..available_generators["T2"]} active[p,"T2",i] + sum {i in 1..available_generators["T3"]} active[p,"T3",i];
 
-# satisfy demands
+# satisfy power demands
 subject to st4 {p in 1..PERIODS}:
   sum {t in GENERATOR_TYPES, i in 1..available_generators[t]} load[p,t,i] >= periods_demand[p];
 
@@ -49,5 +51,9 @@ var cost_launch {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_genera
 var cost_usage {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generators[t]} = cost_min[t] + cost_linear[t] * (load[p,t,i] - load_min[t]);
 var cost_total = sum {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generators[t]} (periods_length[p] * cost_usage[p,t,i] + cost_launch[p,t,i]);
 
-# objective function
-minimize model: cost_total;
+# objective function for minimal cost
+minimize minimize_cost: cost_total;
+
+# weighted objectives Method
+param weight;
+maximize weighted_objectives: weight*demand_increase - cost_total;

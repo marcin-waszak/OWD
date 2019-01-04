@@ -5,6 +5,7 @@ data owd.dat;
 
 option solver cplex;
 
+objective minimize_cost;
 solve;
 
 display cost_total;
@@ -14,4 +15,4 @@ display cost_launch;
 display load;
 
 display production;
-display tot_prod;
+display production_total;

@@ -1,0 +1,16 @@
+reset;
+
+model owd.mod;
+data owd.dat;
+
+option solver cplex;
+
+objective weighted_objectives;
+
+for {i in 1..500}
+{
+	let weight := 10000*i;
+	solve;
+
+	printf "%d\t%d\t%f\n", weight, cost_total, demand_increase > out_weighted_objectives.txt;
+}
