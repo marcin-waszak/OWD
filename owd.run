@@ -11,3 +11,5 @@ display cost;
 display active;
 display load;
 
+display production;
+display tot_prod;
