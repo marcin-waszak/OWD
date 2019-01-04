@@ -1,5 +1,6 @@
 data;
 
+# Okresy
 param PERIODS := 5;
 
 # Zapotrzebowanie w danym okresie [MW]

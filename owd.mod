@@ -30,7 +30,7 @@ subject to st2 {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generat
 
 # sumT1 <= sumT2 + sumT3
 subject to st3 {p in 1..PERIODS}:
-  sum {i in 1..available_generators[member(1,GENERATOR_TYPES)]} active[p,member(1,GENERATOR_TYPES),i] <= sum {i in 1..available_generators[member(2,GENERATOR_TYPES)]} active[p,member(2,GENERATOR_TYPES),i] + sum {i in 1..available_generators[member(3,GENERATOR_TYPES)]} active[p,member(3,GENERATOR_TYPES),i];
+  sum {i in 1..available_generators["T1"]} active[p,"T1",i] <= sum {i in 1..available_generators["T2"]} active[p,"T2",i] + sum {i in 1..available_generators["T3"]} active[p,"T3",i];
 
 # satisfy demands
 subject to st4 {p in 1..PERIODS}:
