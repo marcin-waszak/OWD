@@ -7,9 +7,11 @@ option solver cplex;
 
 solve;
 
-display cost;
+display cost_total;
 display active;
-display load;
+display started;
+display cost_launch;
+#display load;
 
 display production;
 display tot_prod;
