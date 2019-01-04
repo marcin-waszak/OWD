@@ -31,8 +31,9 @@ subject to st2 {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generat
   load[p,t,i] <= load_max[t];
 
 # sumT1 <= sumT2 + sumT3
+var sum_generators {p in 1..PERIODS, t in GENERATOR_TYPES} = sum {i in 1..available_generators[t]} active[p,t,i];
 subject to st3 {p in 1..PERIODS}:
-  sum {i in 1..available_generators["T1"]} active[p,"T1",i] <= sum {i in 1..available_generators["T2"]} active[p,"T2",i] + sum {i in 1..available_generators["T3"]} active[p,"T3",i];
+  sum_generators[p,"T1"] <= sum_generators[p,"T2"] + sum_generators[p,"T3"];
 
 # satisfy power demands
 subject to st4 {p in 1..PERIODS}:
