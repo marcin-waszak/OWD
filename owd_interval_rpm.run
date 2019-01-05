@@ -1,0 +1,20 @@
+reset;
+
+model owd.mod;
+data owd.dat;
+
+option solver cplex;
+
+objective interval_rpm;
+solve;
+
+display active;
+display started;
+display cost_launch;
+display load;
+
+display production;
+display production_total;
+
+display cost_total;
+display demand_increase;

@@ -54,3 +54,27 @@ minimize minimize_cost: cost_total;
 # objective function for weighted objectives method
 param weight;
 maximize weighted_objectives: weight*demand_increase - cost_total;
+
+# objective function for interval reference point method
+param epsilon;
+param gamma;
+param beta;
+param a1;
+param r1;
+param a2;
+param r2;
+
+var v;
+var z1;
+var z2;
+
+subject to irpm1: v <= z1;
+subject to irpm2: v <= z2;
+subject to irpm3: z1 <= gamma * (cost_total - r1) / (a1 - r1);
+subject to irpm4: z1 <= (cost_total - r1) / (a1 - r1);
+subject to irpm5: z1 <= beta * (cost_total - a1) / (a1 - r1) + 1;
+subject to irpm6: z2 <= gamma * (demand_increase - r2) / (a2 - r2);
+subject to irpm7: z2 <= (demand_increase - r2) / (a2 - r2);
+subject to irpm8: z2 <= beta * (demand_increase - a2) / (a2 - r2) + 1;
+
+maximize interval_rpm: v + epsilon * (z1 + z2);

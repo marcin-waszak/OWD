@@ -65,3 +65,12 @@ param	cost_start :=
 	T2	1000
 	T3	500
 	;
+
+# Przedzialowa metoda punktu odniesienia
+param epsilon := 0.001;
+param gamma := 100;
+param beta := 0.01;
+param a1 = 819900;
+param r1 = 900000;
+param a2 = 1.5;
+param r2 = 1.1;
