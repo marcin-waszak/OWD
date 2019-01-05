@@ -28,7 +28,7 @@ subject to st1 {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generat
 
 # loadmax
 subject to st2 {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generators[t]}:
-  load[p,t,i] <= load_max[t];
+  load[p,t,i] <= load_max[t] * active[p,t,i];
 
 # sumT1 <= sumT2 + sumT3
 var sum_generators {p in 1..PERIODS, t in GENERATOR_TYPES} = sum {i in 1..available_generators[t]} active[p,t,i];
@@ -38,10 +38,6 @@ subject to st3 {p in 1..PERIODS}:
 # satisfy power demands
 subject to st4 {p in 1..PERIODS}:
   sum {t in GENERATOR_TYPES, i in 1..available_generators[t]} load[p,t,i] >= periods_demand[p];
-
-# set active flag
-subject to st5 {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generators[t]}:
-  active[p,t,i] = 0 ==> load[p,t,i] = 0;
 
 # set started flag
 var toggled {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generators[t]} = active[p,t,i] - active[((p+3) mod PERIODS)+1,t,i];
@@ -55,6 +51,6 @@ var cost_total = sum {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_g
 # objective function for minimal cost
 minimize minimize_cost: cost_total;
 
-# weighted objectives Method
+# objective function for weighted objectives method
 param weight;
 maximize weighted_objectives: weight*demand_increase - cost_total;
