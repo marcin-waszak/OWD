@@ -12,11 +12,20 @@ solve;
 display active;
 display started;
 display cost_launch;
-display load;
+display power;
 
-display production;
+display period_power;
 display production_total;
 display demand_total;
 
 display cost_total;
 display demand_increase;
+
+
+display epsilon;
+display gamma;
+display beta;
+display a1;
+display r1;
+display a2;
+display r2;

@@ -4,7 +4,7 @@ data;
 param PERIODS := 5;
 
 # Zapotrzebowanie w danym okresie [MW]
-param	periods_demand :=
+param	period_demand :=
 	1	15000
 	2	30000
 	3	25000
@@ -13,7 +13,7 @@ param	periods_demand :=
 	;
 	
 # Dlugosci okresow [h]
-param	periods_length :=
+param	period_length :=
 	1	6
 	2	3
 	3	6
@@ -32,14 +32,14 @@ param	available_generators :=
 	;
 
 # Obciazenie minimalne [MW]
-param	load_min :=
+param	power_min :=
 	T1	850
 	T2	1250
 	T3	1500
 	;
 
 # Obciazenie maksymalane [MW]
-param	load_max :=
+param	power_max :=
 	T1	2000
 	T2	1750
 	T3	4000

@@ -12,7 +12,7 @@ display cost_total;
 display active;
 display started;
 display cost_launch;
-display load;
+display power;
 
-display production;
+display period_power;
 display production_total;
