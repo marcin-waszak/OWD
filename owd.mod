@@ -49,11 +49,11 @@ var cost_usage {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generat
 var cost_total = sum {p in 1..PERIODS, t in GENERATOR_TYPES, i in 1..available_generators[t]} (period_length[p] * cost_usage[p,t,i] + cost_launch[p,t,i]);
 
 # objective function for minimal cost
-minimize minimize_cost: cost_total;
+#minimize minimize_cost: cost_total;
 
 # objective function for weighted objectives method
-param weight;
-maximize weighted_objectives: weight*demand_increase - cost_total;
+#param weight;
+#maximize weighted_objectives: weight*demand_increase - cost_total;
 
 # objective function for interval reference point method
 param epsilon;
