@@ -6,6 +6,7 @@ data owd.dat;
 option solver cplex;
 
 objective interval_rpm;
+write bowd;
 solve;
 
 display active;
@@ -15,6 +16,7 @@ display load;
 
 display production;
 display production_total;
+display demand_total;
 
 display cost_total;
 display demand_increase;
