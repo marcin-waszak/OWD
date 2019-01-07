@@ -61,53 +61,103 @@ $P$ - uporządkowany zbiór okresów,
 
 $T$ - uporządkowany zbiór typów generatorów (T1, T2, T3),
 
-$N$ - uporządkowany zbiór generatorów danego typu,
+$I$ - uporządkowany zbiór generatorów danego typu,
 
 Przyjmijmy: $p \in P$, $t \in T, i \in I[t]$
 
 \subsection{Parametry}
 \begin{itemize}
-\item $periods\_demand \{P\}$
-\item $periods\_length \{P\}$
-\item $available\_generators \{T\}$
-\item $load\_min \{T\}$
-\item $load\_max \{T\}$
-\item $cost\_min \{T\}$
-\item $cost\_linear \{T\}$
-\item $cost\_start \{T\}$
-\item $demand\_total = \sum_{p}^{p \in P} periods\_demand[p]$
+\item Zapotrzebowanie w danym okresie [MW]
+
+$period\_demand \{P\}$
+\item Długości okresów [h]
+
+$period\_length \{P\}$
+\item Ilość generatorów [szt]
+
+$available\_generators \{T\}$
+\item Obciążenie minimalne [MW]
+
+$power\_min \{T\}$
+\item Obciążenie maksymalne [MW]
+
+$power\_max \{T\}$ 
+\item Koszt przy min. obciążeniu [PLN/h]
+
+$cost\_min \{T\}$ 
+\item Koszt energii powyżej min. obciążenia [PLN/MWh]
+
+$cost\_linear \{T\}$ 
+\item Koszt uruchomienia [PLN]
+
+$cost\_start \{T\}$
+\item Całkowita wymagana energia w ciągu dnia [MWh]
+
+$demand\_total = \sum_{p}^{p \in P} period\_demand[p] * period\_length[p]$
 \end{itemize}
 
 \subsection{Zmienne}
 \begin{itemize}
 
 %\item $\forall p \forall t \forall i : active{P,T,I} binary$
-\item $active{P,T,I} binary$
-\item $load{P,T,I}$
-\item $production \; {p \in P} = \sum_{t}^{t \in T} \sum_{i}^{i \in I[t]} \; load[p,t,i];$
-\item $production\_total = \sum_{p}^{p \in P} \; production[p]$
-\item $demand\_increase = \frac{production\_total}{demand\_total}$
-\item $toggled \{p \in P, t \in T, i \in I[t] \} = active[p,t,i] - active[((p+3) mod |P|)+1,t,i]$
-\item $started \{p \in P, t \in T, i \in I[t] \} = \frac{toggled[p,t,i]^2 + toggled[p,t,i]}{2}$
-\item $cost\_launch \{p \in P, t \in T, i \in I[t] \} = cost\_start[t] * started[p,t,i]$
-\item $cost\_usage \{p \in P, t \in T, i \in I[t] \} = cost\_min[t] + cost\_linear[t] * (load[p,t,i] - load\_min[t])$
-\item $cost\_total = \sum_{p}^{p \in P} \; \sum_{t}^{t \in T} \; \sum_{i}^{i \in I[t]} \; (periods\_length[p] * cost\_usage[p,t,i] + cost\_launch[p,t,i])$
+\item Flaga binarna informująca, czy zadany generator pracuje w danym okresie
+
+$active\{P,T,I\} \; binary$
+\item Moc danego generatora w danym okresie [MW]
+
+$power\{P,T,I\}$
+\item Faktyczna moc wszystkich generatorów w danym okresie
+
+$period\_power \; \{p \in P\} = \sum_{t}^{t \in T} \sum_{i}^{i \in I[t]} \; power[p,t,i];$
+\item Faktyczna wyprodukowana energia w ciągu dnia [MWh]
+
+$production\_total = \sum_{p}^{p \in P} \; period\_power[p] * period\_length[p]$
+\item 
+
+$demand\_increase = \frac{production\_total}{demand\_total}$
+\item Flaga zmiany stanu generatora wraz z początkiem danego okresu
+
+(-1 = wyłączono, 0 = bez zmian, 1 = włączono)
+
+$toggled \{p \in P, t \in T, i \in I[t] \} = active[p,t,i] - active[((p+3) mod |P|)+1,t,i]$
+
+Warto wspomnieć, że dzięki użyciu modulo mamy ,,sklejony'' ostatni okres z pierwszym okresem. Z końcem dnia cykl zapotrzebowań się powtarza i ten fakt nasz model uwzględnia.
+\item Flaga włączenia generatora z początkiem danego okresu
+
+$started \{p \in P, t \in T, i \in I[t] \} = \frac{toggled[p,t,i]^2 + toggled[p,t,i]}{2}$
+\item Koszt włączenia generatora w okresie (0 jeśli nie został włączony) [PLN]
+
+$cost\_launch \{p \in P, t \in T, i \in I[t] \} = cost\_start[t] * started[p,t,i]$
+\item Koszt pracy generatora po włączeniu [PLN/h]
+
+$cost\_usage \{p \in P, t \in T, i \in I[t] \} = cost\_min[t] + cost\_linear[t] * (power[p,t,i] - power\_min[t])$
+\item Dzienny całkowity koszt pracy elektrowni [PLN]
+
+$cost\_total = \sum_{p}^{p \in P} \; \sum_{t}^{t \in T} \; \sum_{i}^{i \in I[t]} \; (period\_length[p] * cost\_usage[p,t,i] + cost\_launch[p,t,i])$
 \end{itemize}
 
 
 \subsection{Ograniczenia}
 \begin{itemize}
 %st1
-\item $\forall p \in P \; \forall t \in T \; \forall i \in I[t] \; : load[p,t,i] 
-\geqslant load\_min[t] * active[p,t,i]$
+\item Ograniczenie minimalnej mocy generatora. Zmienna binarna wyłącza te ograniczenie, kiedy dany generator nie pracuje
+
+$\forall p \in P \; \forall t \in T \; \forall i \in I[t] \; : power[p,t,i] 
+\geqslant power\_min[t] * active[p,t,i]$
 %st2
-\item $\forall p \in P \; \forall t \in T \; \forall i \in I[t] \; : load[p,t,i] \leqslant load\_max[t] * active[p,t,i]$
+\item Ograniczenie mocy maksymalnej generatora
+
+$\forall p \in P \; \forall t \in T \; \forall i \in I[t] \; : power[p,t,i] \leqslant power\_max[t] * active[p,t,i]$
 %st3
-\item $sum\_generators \{ p \in P, t \in T \} = \sum_{i}^{i \in I[t]} active[p,t,i]$
+\item Każdemu włączonemu generatorowi T1 musi odpowiadać włączony generator T2 lub T3
+
+$sum\_generators \{ p \in P, t \in T \} = \sum_{i}^{i \in I[t]} active[p,t,i]$
 
 $\forall p \in P : sum\_generators[p,T1] \leqslant sum\_generators[p,T2] + sum\_generators[p,T3]$
 %st4
-\item $\forall p \in P : \sum_{t}^{t \in T} \; \sum_{i}^{i \in I[t]} load[p,t,i] >= periods\_demand[p]$
+\item Faktyczna dostarczana moc w ciągu okresu sprostać zapotrzebowaniom
+
+$\forall p \in P : period_power[p] \geqslant period\_demand[p]$
 \end{itemize}
 
 \subsection{Funkcje celu}
@@ -118,26 +168,26 @@ $$min \: \: \leftarrow cost\_total$$
 \subsubsection{Funkcja celu metody ważenia ocen}
 Załóżmy, że znamy wartość wagi $weight$, to wtedy funkcja celu wygląda następująco:
 $$max \: \: \leftarrow weight*demand\_increase - cost\_total$$
-Należy zwrócić uwagę, że $cost\_total$ jest poprzedzone minusem, ponieważ kanonicznie metoda ważenia ocen jest problemem maksymalizacji. My natomiast koszt całkowity chcemy minimalizować.
+Należy zwrócić uwagę, że $cost\_total$ jest poprzedzone minusem, ponieważ kanonicznie metoda ważenia ocen jest problemem maksymalizacji. My natomiast koszt całkowity chcemy minimalizować. Ponadto zrezygnowano z normalizacji wag, ponieważ w tym wypadku wygodniej dopasować proporcję ważności kryteriów sterując jednym parametrem.
 
 \subsubsection{Funkcja celu dla przedziałowej metody punktu odniesienia}
 Załóżmy, że znamy wartości parametrów $\epsilon$, $\gamma$, $\beta$, $a_1$, $r_1$, $a_2$, $r_2$. Wprowadźmy zmienne pomocnicze $v$, $z_1$, $z_2$. Ostatecznie przedziałowa metoda punktu odniesienia może być w zaimplementowana formułując następujące ograniczenia:
 \begin{itemize}
 \item $v \leqslant z_1$
 \item $v \leqslant z_2$
-\item $z_1 \leqslant \gamma * \frac{cost\_total - r_1}{a_1 - r_1}$
+\item $z_1 \leqslant \gamma \; \frac{cost\_total - r_1}{a_1 - r_1}$
 \item $z_1 \leqslant \frac{cost\_total - r_1}{a_1 - r_1}$
-\item $z_1 \leqslant \beta * \frac{cost\_total - a_1}{a_1 - r_1} + 1$
-\item $z_2 \leqslant \gamma * \frac{demand\_increase - r_2}{a_2 - r_2}$
+\item $z_1 \leqslant \beta \; \frac{cost\_total - a_1}{a_1 - r_1} + 1$
+\item $z_2 \leqslant \gamma \; \frac{demand\_increase - r_2}{a_2 - r_2}$
 \item $z_2 \leqslant \frac{demand\_increase - r_2}{a_2 - r_2}$
-\item $z_2 \leqslant \beta * \frac{demand\_increase - a_2}{a_2 - r_2} + 1$
+\item $z_2 \leqslant \beta \; \frac{demand\_increase - a_2}{a_2 - r_2} + 1$
 \end{itemize}
 Wtedy funkcja celu ma następującą postać:
 $$max \: \: \leftarrow v + \epsilon * (z_1 + z_2)$$
 
 \begin{figure}[H]
 \centering
-\includegraphics[scale=0.35]{plot.png}
+\includegraphics[scale=0.4]{plot_new.png}
 \caption{Przestrzeń rozwiązań efektywnych w przestrzeni względnej produkcji i kosztu}
 \label{fig:plot}
 \end{figure}
