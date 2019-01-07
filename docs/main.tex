@@ -185,12 +185,106 @@ Załóżmy, że znamy wartości parametrów $\epsilon$, $\gamma$, $\beta$, $a_1$
 Wtedy funkcja celu ma następującą postać:
 $$max \: \: \leftarrow v + \epsilon * (z_1 + z_2)$$
 
+\section{Implementacja}
+Powyższy model matematyczny został zaimplementowany w języku AMPL. Jako solver został wybrany CPLEX, ponieważ obsługuje on zmienne dyskretne, w szczególności zmienne binarne.
+
+Implementacja składa się z następujących plików:
+\begin{itemize}
+\item \textbf{\texttt{owd.mod}} - opis modelu,
+\item \textbf{\texttt{owd.dat}} - dane modelu,
+\item \textbf{\texttt{owd\_minimize\_cost.run}} - wykonanie minimalizacji kosztu,
+\item \textbf{\texttt{owd\_weighted\_objectives.run}} - wykonanie metody ważenia ocen,
+\item \textbf{\texttt{owd\_interval\_rpm.run}} - wykonanie przedziałowej metody puntu odniesienia.
+\end{itemize}
+
+\subsection{Testowanie poprawności modelu}
+Rozwój modelu następował małymi częściami, które były na bieżąco sprawdzane. Po dodaniu każdego ograniczenia weryfikowano, ręcznie wartości zmiennych decyzyjnych po wykonaniu symulacji. Po ukończeniu modelu przy okazji sporządzania tejże dokumentacji po raz kolejny sprawdzano integralność modelu. Na tym etapie udało się znaleźć drobny błąd, który powodował błędne naliczanie całkowitej wyprodukowanej energii. Zmieniało to rozwiązania funkcji celów używających zmiennej \textbf{production\_total}, czyli w metodzie ważenia ocen oraz przedziałowej metodzie odniesienia. Błąd został usunięty.
+
+\section{Wyniki symulacji}
+Umówimy z osobna rezultaty otrzymane z optymalizacji każdej funkcji celu z osobna.
+
+\subsection{Symulacja dla minimalizacji kosztów} \label{sec:cost_min}
+Wyznaczanie rozwiązania zajęło 455 iteracji algorytmu simplex. Jest to zatem mało złożone zadanie optymalizacji.
+
+Minimalny koszt: \textbf{819900 PLN}
+
+Wyprodukowana energia w ciągu doby: \textbf{612000 MWh}
+
+A tak prezentują się szczegółowe dane dotyczące mocy każdego generatorów w danym okresie:
+
+\begin{boxedverbatim}
+power [*,T1,*] (tr)
+:    1    2      3      4      5      :=
+1    0   2000    850   2000   2000
+2    0   2000   2000   2000      0
+3    0    850   1250   1000      0
+4    0      0      0   2000      0
+5    0      0      0   2000   2000
+6    0      0      0   2000   2000
+7    0   2000    850   2000      0
+8    0      0      0      0      0
+9    0      0      0   2000    950
+10   0   2000    850   2000    850
+11   0   2000    850   2000    850
+12   0   1650    850   2000    850
+
+ [*,T2,*] (tr)
+:     1      2      3      4      5      :=
+1    1250   1750   1750   1750   1750
+2    1250   1750   1750   1750   1750
+3    1250   1750   1750   1750   1750
+4    1750   1750   1750   1750   1750
+5    1250   1750   1750   1750   1750
+6    1750   1750   1750   1750   1750
+7    1250   1750   1750   1750   1750
+8    1750   1750   1750   1750   1750
+9    1750   1750   1750   1750   1750
+10   1750   1750   1750   1750   1750
+
+ [*,T3,*] (tr)
+:   1   2   3    4     5    :=
+1   0   0   0      0   0
+2   0   0   0      0   0
+3   0   0   0   1500   0
+4   0   0   0      0   0
+5   0   0   0      0   0
+\end{boxedverbatim}
+
+Wyniki zostały pogrupowane według typów generatorów. Rzędy opisują konkretne generatory, natomiast kolumny opisują okresy. Możemy łatwo posumować kolumny, w rezultacie możemy zobaczyć, że nasze rozwiązanie faktycznie prezentuje wymagane moce w kolejnych okresach opisane w zadaniu.
+
+Otrzymane rozwiązanie jest o tyle ciekawe, że okazuje się, iż nie opłaca się wyłączać żadnego z generatorów typu \textbf{T2}. Każdy z generatorów tego typu prawie zawsze pracuje z maksymalną dopuszczalną dla niego mocą (wyjątkiem jest okres 1. kiedy obciążenie sieci energetycznej jest na wyjątkowo małym poziomie). Wniosek jest taki, że czynnikiem przeważającym wybór tego typu generatora jest jego niski koszt powyżej minimalnego obciążenia. Drugim najczęściej wybieranym jest generator typu \textbf{T1}. Najmniej opłacalnym jest natomiast \textbf{T3}.
+
+\subsection{Symulacja dla metody ważenia ocen} \label{sec:weight}
+W tej metodzie w zależności przy pomocy parametru \textbf{weight} możemy ustawić, która ocena ma dla nas większe znaczenie. Kiedy wartość parametru jest niska to większe znaczenie ma dla nas minimalizacja kosztu. Kiedy natomiast waga rośnie, to ważniejsze z punktu widzenia optymalizacji jest maksymalizacja większego zapotrzebowania. Jako, iż ustawienie parametru nie jest oczywiste postanowiono dokonać przemiatania wartości \textbf{weight} od 100000 do 2000000 ze skokiem o 10000.
+
+Dokonano symulacji dla wyżej wymienionych wartości. Złożoność wynosiła od 60 do 600 iteracji simplex (średnio dla 200 iteracji dla wartości \textbf{weight}, które nie były skrajne).
+
+Pozwoliło nam to wykreślić zależność w przestrzeni ocen (względny wzrost produkcji - koszt). Rezultat prezentuje rysunek \ref{fig:plot}.
+
 \begin{figure}[H]
 \centering
 \includegraphics[scale=0.4]{plot_new.png}
 \caption{Przestrzeń rozwiązań efektywnych w przestrzeni względnej produkcji i kosztu}
 \label{fig:plot}
 \end{figure}
+
+Kolor niebieski to wykres osiągniętego kosztu od względnej nadprodukcji energii. Ponadto widzimy, że nasza symulacja dotarła do skrajnych ocen, tj. osiągnęliśmy minimalny koszt prezentowany w podpunkcie \ref{sec:cost_min} oraz przypadek maksymalnej produkcji energii (wszystkie generatory pracujące z maksymalną mocą przez wszystkie okresy doby). Wartości skrajne są oznaczone kolorem ciemnozielonym i czerwonym. Pozostałe zaznaczone punkty, dotyczą kolejnego podrozdziału \ref{sec:pmpo}.
+
+\subsection{Symulacja dla przedziałowej metody punktu odniesienia} \label{sec:pmpo}
+Metoda użyta w tym podpunkcie jest bardziej zaawansowaną metodą skalaryzacji wielokryterialnej. Jest to metoda interaktywna, w której ustawiamy parametry aspiracji i rezerwacji (wartości pożądanej i wymaganej). Metoda ta pomaga decydentowi podjąć wybór, dzięki tym intuicyjnym punktom odniesienia.
+
+Dokonano symulacji przy użyciu tej metody. W pierwszej kolejności rzuca się w oczy drastyczny wzrost złożoności obliczeniowej problemu. W zależności od parametrów $\epsilon$, $\gamma$, $\beta$, $a_1$, $r_1$, $a_2$, $r_2$ złożoność zmienia się od dziesiątek tysięcy do dziesiątek milionów iteracji. Przykładowe wartości ocen i złożoności w zależności od parametrów PMPO:
+
+\begin{table}[H]
+\begin{tabular}{llllllllll}
+$\epsilon$ & $\gamma$ & $\beta$ & $a_1$ & $r_1$ & $a_2$ & $r_2$ & \textbf{produkcja} & \textbf{koszt [PLN]} & $l. iteracji$ \\ \hline
+0.001                            & 1000                           & 0.001                         & 880000        & 1400000       & 1.3           & 1.05          & \textbf{1.21628}            & \textbf{1054130}        & \texttt{156466}               \\
+0.001                            & 100                            & 0.01                          & 819900        & 900000        & 1.5           & 1.1           & \textbf{1.08793}            & \textbf{902417}         & \texttt{17282212}             \\
+0.001                            & 1000                           & 0.001                         & 1000000       & 1400000       & 2             & 1.8           & \textbf{1.67032}            & \textbf{1659370}        & \texttt{2295970}             
+\end{tabular}
+\end{table}
+
+Wszystkie trzy przypadki zebrane w tabeli umieszczono na rysunku \ref{fig:plot} jako punkty \textbf{PMPO 1}, \textbf{PMPO 2}, \textbf{PMPO 3} (odpowiednio kolory: żółty, różowy, jaskrawozielony). Co ciekawe, wszystkie te rozwiązania efektywne pokrywają się z tymi, do których wcześniej dotarliśmy metodą ważenia ocen co opisano w podrozdziale \ref{sec:weight}. Co ciekawe, PMPO teoretycznie pozwala dotrzeć do punktów nieosiągalnych MWO. Jednakże w naszym przypadku nie zaobserwowałem tego pomimo prób.
 
 %\printbibliography
 
