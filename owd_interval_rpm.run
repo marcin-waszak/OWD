@@ -6,7 +6,7 @@ data owd.dat;
 option solver cplex;
 
 objective interval_rpm;
-write bowd_1;
+write bowd;
 solve;
 
 display active;

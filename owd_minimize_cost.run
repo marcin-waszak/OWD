@@ -6,6 +6,7 @@ data owd.dat;
 option solver cplex;
 
 objective minimize_cost;
+write bowd;
 solve;
 
 display cost_total;
