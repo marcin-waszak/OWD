@@ -1,7 +1,7 @@
 \documentclass[12pt, twoside, hidelinks, a4paper]{article}
 
 \usepackage[]{geometry}
-\geometry{inner=30mm, outer=20mm, top=23mm, bottom=23mm}
+\geometry{inner=30mm, outer=20mm, top=22mm, bottom=22mm}
 
 \usepackage{mystyle}
 \pagestyle{headings}
@@ -48,7 +48,7 @@
 \maketitle
 
 \begin{abstract}
-Celem projektu jest optymalizacja pracy elektrowni pod względem kosztów jak i możliwości zaspokojenia wzrostu zapotrzebowań na energię ponad normę. Ponadto zostaną porównane techniki optymalizacji wielokryterialnej przy użyciu skalaryzacji \textit{Metodą Ważenia Ocen} (MWO) oraz \textit{Przedziałową Metodą Punktu Odniesienia} (PMPO).
+Celem projektu jest optymalizacja pracy elektrowni pod względem kosztów jak i możliwości zaspokojenia wzrostu zapotrzebowań na energię ponad normę. Ponadto zostaną porównane techniki optymalizacji wielokryterialnej przy użyciu skalaryzacji \textit{metodą ważenia ocen} (MWO) oraz \textit{przedziałową metodą punktu odniesienia} (PMPO).
 \end{abstract}
 
 \section{Zadanie}
@@ -69,31 +69,31 @@ Przyjmijmy: $p \in P$, $t \in T, i \in I[t]$
 \begin{itemize}
 \item Zapotrzebowanie na moc w danym okresie [MW]
 
-$period\_demand \{P\}$
+$$period\_demand \{P\}$$
 \item Długości okresów [h]
 
-$period\_length \{P\}$
+$$period\_length \{P\}$$
 \item Ilości generatorów [szt]
 
-$available\_generators \{T\}$
+$$available\_generators \{T\}$$
 \item Obciążenie minimalne generatora [MW]
 
-$power\_min \{T\}$
+$$power\_min \{T\}$$
 \item Obciążenie maksymalne generatora [MW]
 
-$power\_max \{T\}$ 
+$$power\_max \{T\}$$
 \item Koszt przy minimalnym obciążeniu [PLN/h]
 
-$cost\_min \{T\}$ 
+$$cost\_min \{T\}$$
 \item Koszt energii powyżej minimalnego obciążenia [PLN/MWh]
 
-$cost\_linear \{T\}$ 
+$$cost\_linear \{T\}$$
 \item Koszt uruchomienia [PLN]
 
-$cost\_start \{T\}$
+$$cost\_start \{T\}$$
 \item Całkowita wymagana energia w ciągu dnia [MWh]
 
-$demand\_total = \sum_{p}^{p \in P} period\_demand[p] * period\_length[p]$
+$$demand\_total = \sum_{p}^{p \in P} period\_demand[p] \cdot period\_length[p]$$
 \end{itemize}
 
 \subsection{Zmienne}
@@ -102,38 +102,38 @@ $demand\_total = \sum_{p}^{p \in P} period\_demand[p] * period\_length[p]$
 %\item $\forall p \forall t \forall i : active{P,T,I} binary$
 \item Flaga binarna informująca, czy zadany generator pracuje w danym okresie
 
-$active\{P,T,I\} \; binary$
+$$active\{P,T,I\} \; binary$$
 \item Moc danego generatora w danym okresie [MW]
 
-$power\{P,T,I\}$
+$$power\{P,T,I\}$$
 \item Faktyczna moc wszystkich generatorów w danym okresie
 
-$period\_power \; \{p \in P\} = \sum_{t}^{t \in T} \sum_{i}^{i \in I[t]} \; power[p,t,i];$
+$$period\_power \; \{p \in P\} = \sum_{t}^{t \in T} \sum_{i}^{i \in I[t]} \; power[p,t,i]$$
 \item Faktyczna wyprodukowana energia w ciągu dnia [MWh]
 
-$production\_total = \sum_{p}^{p \in P} \; period\_power[p] * period\_length[p]$
-\item 
+$$production\_total = \sum_{p}^{p \in P} \; period\_power[p] \cdot period\_length[p]$$
+\item Iloraz faktycznie wyprodukowanej energii do przewidywanych zapotrzebowań energii (współczynnik nadprodukcji)
 
-$demand\_increase = \frac{production\_total}{demand\_total}$
+$$demand\_increase = \frac{production\_total}{demand\_total}$$
 \item Flaga zmiany stanu generatora wraz z początkiem danego okresu
 
 (-1 = wyłączono, 0 = bez zmian, 1 = włączono)
 
-$toggled \{p \in P, t \in T, i \in I[t] \} = active[p,t,i] - active[((p+3) mod |P|)+1,t,i]$
+$$toggled \{p \in P, t \in T, i \in I[t] \} = active[p,t,i] - active[((p+3) mod |P|)+1,t,i]$$
 
 Warto wspomnieć, że dzięki użyciu modulo mamy ,,sklejony'' ostatni okres z pierwszym okresem. Z końcem dnia cykl zapotrzebowań się powtarza i ten fakt nasz model uwzględnia.
 \item Flaga włączenia generatora z początkiem danego okresu
 
-$started \{p \in P, t \in T, i \in I[t] \} = \frac{toggled[p,t,i]^2 + toggled[p,t,i]}{2}$
+$$started \{p \in P, t \in T, i \in I[t] \} = \frac{toggled[p,t,i]^2 + toggled[p,t,i]}{2}$$
 \item Koszt włączenia generatora w okresie (0 jeśli nie został włączony) [PLN]
 
-$cost\_launch \{p \in P, t \in T, i \in I[t] \} = cost\_start[t] * started[p,t,i]$
+$$cost\_launch \{p \in P, t \in T, i \in I[t] \} = cost\_start[t] \cdot started[p,t,i]$$
 \item Koszt pracy generatora po włączeniu [PLN/h]
 
-$cost\_usage \{p \in P, t \in T, i \in I[t] \} = cost\_min[t] + cost\_linear[t] * (power[p,t,i] - power\_min[t])$
+$$cost\_usage \{p \in P, t \in T, i \in I[t] \} = cost\_min[t] + cost\_linear[t] \cdot (power[p,t,i] - power\_min[t])$$
 \item Dzienny całkowity koszt pracy elektrowni [PLN]
 
-$cost\_total = \sum_{p}^{p \in P} \; \sum_{t}^{t \in T} \; \sum_{i}^{i \in I[t]} \; (period\_length[p] * cost\_usage[p,t,i] + cost\_launch[p,t,i])$
+$$cost\_total = \sum_{p}^{p \in P} \; \sum_{t}^{t \in T} \; \sum_{i}^{i \in I[t]} \; (period\_length[p] \cdot cost\_usage[p,t,i] + cost\_launch[p,t,i])$$
 \end{itemize}
 
 
@@ -142,22 +142,22 @@ $cost\_total = \sum_{p}^{p \in P} \; \sum_{t}^{t \in T} \; \sum_{i}^{i \in I[t]}
 %st1
 \item Ograniczenie minimalnej mocy generatora. Zmienna binarna wyłącza te ograniczenie, kiedy dany generator nie pracuje
 
-$\forall p \in P \; \forall t \in T \; \forall i \in I[t] \; : power[p,t,i] 
-\geqslant power\_min[t] * active[p,t,i]$
+$$\forall p \in P \; \forall t \in T \; \forall i \in I[t] \; : power[p,t,i] 
+\geqslant power\_min[t] \cdot active[p,t,i]$$
 %st2
 \item Ograniczenie mocy maksymalnej generatora
 
-$\forall p \in P \; \forall t \in T \; \forall i \in I[t] \; : power[p,t,i] \leqslant power\_max[t] * active[p,t,i]$
+$$\forall p \in P \; \forall t \in T \; \forall i \in I[t] \; : power[p,t,i] \leqslant power\_max[t] \cdot active[p,t,i]$$
 %st3
 \item Każdemu włączonemu generatorowi T1 musi odpowiadać włączony generator T2 lub T3
 
-$sum\_generators \{ p \in P, t \in T \} = \sum_{i}^{i \in I[t]} active[p,t,i]$
+$$sum\_generators \{ p \in P, t \in T \} = \sum_{i}^{i \in I[t]} active[p,t,i]$$
 
-$\forall p \in P : sum\_generators[p,T1] \leqslant sum\_generators[p,T2] + sum\_generators[p,T3]$
+$$\forall p \in P : sum\_generators[p,T1] \leqslant sum\_generators[p,T2] + sum\_generators[p,T3]$$
 %st4
 \item Faktyczna dostarczana moc w ciągu okresu sprostać zapotrzebowaniom
 
-$\forall p \in P : period_power[p] \geqslant period\_demand[p]$
+$$\forall p \in P : period_power[p] \geqslant period\_demand[p]$$
 \end{itemize}
 
 \subsection{Funkcje celu}
@@ -167,23 +167,23 @@ $$min \: \: \leftarrow cost\_total$$
 
 \subsubsection{Funkcja celu metody ważenia ocen}
 Załóżmy, że znamy wartość wagi $weight$, to wtedy funkcja celu wygląda następująco:
-$$max \: \: \leftarrow weight*demand\_increase - cost\_total$$
+$$max \: \: \leftarrow weight \cdot demand\_increase - cost\_total$$
 Należy zwrócić uwagę, że $cost\_total$ jest poprzedzone minusem, ponieważ kanonicznie metoda ważenia ocen jest problemem maksymalizacji. My natomiast koszt całkowity chcemy minimalizować. Ponadto zrezygnowano z normalizacji wag, ponieważ w tym wypadku wygodniej dopasować proporcję ważności kryteriów sterując jednym parametrem.
 
 \subsubsection{Funkcja celu dla przedziałowej metody punktu odniesienia}
 Załóżmy, że znamy wartości parametrów $\epsilon$, $\gamma$, $\beta$, $a_1$, $r_1$, $a_2$, $r_2$. Wprowadźmy zmienne pomocnicze $v$, $z_1$, $z_2$. Ostatecznie przedziałowa metoda punktu odniesienia może być w zaimplementowana formułując następujące ograniczenia:
-\begin{itemize}
-\item $v \leqslant z_1$
-\item $v \leqslant z_2$
-\item $z_1 \leqslant \gamma \; \frac{cost\_total - r_1}{a_1 - r_1}$
-\item $z_1 \leqslant \frac{cost\_total - r_1}{a_1 - r_1}$
-\item $z_1 \leqslant \beta \; \frac{cost\_total - a_1}{a_1 - r_1} + 1$
-\item $z_2 \leqslant \gamma \; \frac{demand\_increase - r_2}{a_2 - r_2}$
-\item $z_2 \leqslant \frac{demand\_increase - r_2}{a_2 - r_2}$
-\item $z_2 \leqslant \beta \; \frac{demand\_increase - a_2}{a_2 - r_2} + 1$
-\end{itemize}
+
+$$v \leqslant z_1$$
+$$v \leqslant z_2$$
+$$z_1 \leqslant \gamma \; \frac{cost\_total - r_1}{a_1 - r_1}$$
+$$z_1 \leqslant \frac{cost\_total - r_1}{a_1 - r_1}$$
+$$z_1 \leqslant \beta \; \frac{cost\_total - a_1}{a_1 - r_1} + 1$$
+$$z_2 \leqslant \gamma \; \frac{demand\_increase - r_2}{a_2 - r_2}$$
+$$z_2 \leqslant \frac{demand\_increase - r_2}{a_2 - r_2}$$
+$$z_2 \leqslant \beta \; \frac{demand\_increase - a_2}{a_2 - r_2} + 1$$
+
 Wtedy funkcja celu ma następującą postać:
-$$max \: \: \leftarrow v + \epsilon * (z_1 + z_2)$$
+$$max \: \: \leftarrow v + \epsilon (z_1 + z_2)$$
 
 \section{Implementacja}
 Powyższy model matematyczny został zaimplementowany w języku AMPL. Jako solver został wybrany CPLEX, ponieważ obsługuje on zmienne dyskretne, w szczególności zmienne binarne.
@@ -255,6 +255,8 @@ Wyniki zostały pogrupowane według typów generatorów. Rzędy opisują konkret
 Otrzymane rozwiązanie jest o tyle ciekawe, że okazuje się, iż nie opłaca się wyłączać żadnego z generatorów typu \textbf{T2}. Każdy z generatorów tego typu prawie zawsze pracuje z maksymalną dopuszczalną dla niego mocą (wyjątkiem jest okres 1. kiedy obciążenie sieci energetycznej jest na wyjątkowo małym poziomie). Wniosek jest taki, że czynnikiem przeważającym wybór tego typu generatora jest jego niski koszt powyżej minimalnego obciążenia. Drugim najczęściej wybieranym jest generator typu \textbf{T1}. Najmniej opłacalnym jest natomiast \textbf{T3}.
 
 \subsection{Symulacja dla metody ważenia ocen} \label{sec:weight}
+\textbf{UWAGA: Przed użyciem należy odkomentować sekcję MWO w modelu}
+
 W tej metodzie w zależności przy pomocy parametru \textbf{weight} możemy ustawić, która ocena ma dla nas większe znaczenie. Kiedy wartość parametru jest niska to większe znaczenie ma dla nas minimalizacja kosztu. Kiedy natomiast waga rośnie, to ważniejsze z punktu widzenia optymalizacji jest maksymalizacja większego zapotrzebowania. Jako, iż ustawienie parametru nie jest oczywiste postanowiono dokonać przemiatania wartości \textbf{weight} od 100000 do 2000000 ze skokiem o 10000.
 
 Dokonano symulacji dla wyżej wymienionych wartości. Złożoność wynosiła od 60 do 600 iteracji simplex (średnio dla 200 iteracji dla wartości \textbf{weight}, które nie były skrajne).
@@ -271,6 +273,8 @@ Pozwoliło nam to wykreślić zależność w przestrzeni ocen (względny wzrost 
 Kolor niebieski to wykres osiągniętego kosztu od względnej nadprodukcji energii. Ponadto widzimy, że nasza symulacja dotarła do skrajnych ocen, tj. osiągnęliśmy minimalny koszt prezentowany w podpunkcie \ref{sec:cost_min} oraz przypadek maksymalnej produkcji energii (wszystkie generatory pracujące z maksymalną mocą przez wszystkie okresy doby). Wartości skrajne są oznaczone kolorem ciemnozielonym i czerwonym. Pozostałe zaznaczone punkty, dotyczą kolejnego podrozdziału \ref{sec:pmpo}.
 
 \subsection{Symulacja dla przedziałowej metody punktu odniesienia} \label{sec:pmpo}
+\textbf{UWAGA: Przed użyciem należy odkomentować sekcję PMPO w modelu}
+
 Metoda użyta w tym podpunkcie jest bardziej zaawansowaną metodą skalaryzacji wielokryterialnej. Jest to metoda interaktywna, w której ustawiamy parametry aspiracji i rezerwacji (wartości pożądanej i wymaganej). Metoda ta pomaga decydentowi podjąć wybór, dzięki tym intuicyjnym punktom odniesienia.
 
 Dokonano symulacji przy użyciu tej metody. W pierwszej kolejności rzuca się w oczy drastyczny wzrost złożoności obliczeniowej problemu. W zależności od parametrów $\epsilon$, $\gamma$, $\beta$, $a_1$, $r_1$, $a_2$, $r_2$ złożoność zmienia się od dziesiątek tysięcy do dziesiątek milionów iteracji. Przykładowe wartości ocen i złożoności w zależności od parametrów PMPO:
