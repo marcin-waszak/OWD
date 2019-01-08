@@ -67,25 +67,25 @@ Przyjmijmy: $p \in P$, $t \in T, i \in I[t]$
 
 \subsection{Parametry}
 \begin{itemize}
-\item Zapotrzebowanie w danym okresie [MW]
+\item Zapotrzebowanie na moc w danym okresie [MW]
 
 $period\_demand \{P\}$
 \item Długości okresów [h]
 
 $period\_length \{P\}$
-\item Ilość generatorów [szt]
+\item Ilości generatorów [szt]
 
 $available\_generators \{T\}$
-\item Obciążenie minimalne [MW]
+\item Obciążenie minimalne generatora [MW]
 
 $power\_min \{T\}$
-\item Obciążenie maksymalne [MW]
+\item Obciążenie maksymalne generatora [MW]
 
 $power\_max \{T\}$ 
-\item Koszt przy min. obciążeniu [PLN/h]
+\item Koszt przy minimalnym obciążeniu [PLN/h]
 
 $cost\_min \{T\}$ 
-\item Koszt energii powyżej min. obciążenia [PLN/MWh]
+\item Koszt energii powyżej minimalnego obciążenia [PLN/MWh]
 
 $cost\_linear \{T\}$ 
 \item Koszt uruchomienia [PLN]
@@ -198,10 +198,10 @@ Implementacja składa się z następujących plików:
 \end{itemize}
 
 \subsection{Testowanie poprawności modelu}
-Rozwój modelu następował małymi częściami, które były na bieżąco sprawdzane. Po dodaniu każdego ograniczenia weryfikowano, ręcznie wartości zmiennych decyzyjnych po wykonaniu symulacji. Po ukończeniu modelu przy okazji sporządzania tejże dokumentacji po raz kolejny sprawdzano integralność modelu. Na tym etapie udało się znaleźć drobny błąd, który powodował błędne naliczanie całkowitej wyprodukowanej energii. Zmieniało to rozwiązania funkcji celów używających zmiennej \textbf{production\_total}, czyli w metodzie ważenia ocen oraz przedziałowej metodzie odniesienia. Błąd został usunięty.
+Rozwój modelu następował małymi częściami, które były na bieżąco sprawdzane. Po dodaniu każdego ograniczenia weryfikowano manualnie wartości zmiennych decyzyjnych po wykonaniu symulacji. Po ukończeniu modelu przy okazji sporządzania tejże dokumentacji po raz kolejny sprawdzano integralność modelu. Na tym etapie udało się znaleźć drobny błąd, który powodował błędne naliczanie całkowitej wyprodukowanej energii. Zmieniało to rozwiązania funkcji celów używających zmiennej \textbf{production\_total}, czyli w metodzie ważenia ocen oraz przedziałowej metodzie punktu odniesienia. Błąd został usunięty.
 
 \section{Wyniki symulacji}
-Umówimy z osobna rezultaty otrzymane z optymalizacji każdej funkcji celu z osobna.
+W tym rozdziale omówimy rezultaty otrzymane z optymalizacji każdej funkcji celu z osobna.
 
 \subsection{Symulacja dla minimalizacji kosztów} \label{sec:cost_min}
 Wyznaczanie rozwiązania zajęło 455 iteracji algorytmu simplex. Jest to zatem mało złożone zadanie optymalizacji.
@@ -285,6 +285,17 @@ $\epsilon$ & $\gamma$ & $\beta$ & $a_1$ & $r_1$ & $a_2$ & $r_2$ & \textbf{produk
 \end{table}
 
 Wszystkie trzy przypadki zebrane w tabeli umieszczono na rysunku \ref{fig:plot} jako punkty \textbf{PMPO 1}, \textbf{PMPO 2}, \textbf{PMPO 3} (odpowiednio kolory: żółty, różowy, jaskrawozielony). Co ciekawe, wszystkie te rozwiązania efektywne pokrywają się z tymi, do których wcześniej dotarliśmy metodą ważenia ocen co opisano w podrozdziale \ref{sec:weight}. Co ciekawe, PMPO teoretycznie pozwala dotrzeć do punktów nieosiągalnych MWO. Jednakże w naszym przypadku nie zaobserwowałem tego pomimo prób.
+
+\section{Podsumowanie i wnioski}
+\begin{enumerate}
+\item Cena energii jest w przybliżeniu liniowa w zależności od ilości jaka została wyprodukowana. Trzeba przyznać, że dla wyższych ilości energii wykres zaczyna być bardziej stromy. Wynika to z tego, że jesteśmy zmuszeni korzystać z coraz to droższych generatorów.
+\item Generatory typu \textbf{T2} są najtańsze w użytkowaniu, w związku z tym nie opłaca ich się nawet wyłączać.
+\item Na wykresie \ref{fig:plot}. nie widać skoków wynikających z włączeń generatorów, ponieważ koszty uruchomienia są znacznie niższe od kosztów pracy.
+\item MWO nie wprowadza dodatkowej złożoności do modelu, dzięki czemu możemy z łatwością przeprowadzić przemiatanie wszystkich wartości wagi. Z kolei PMPO wprowadza zauważalne znaczne narzuty złożoności.
+\item W ogólności PMPO pozwala nam dotrzeć do rozwiązań efektywnych nieosiągalnych przez MWO. Jednakże w naszym przypadku się to nie udało.
+\item W przypadku naszego problemu, który jest dwukryterialny (wzrost energii, koszt) łatwiejsze jest użycie MWO, ponieważ możemy dokonać łatwego przemiatania zmieniając jeden parametr. Jednakże w ogólności w problemach wielowymiarowych bardziej intuicyjne byłoby użycie PMPO. Wynika to stąd, że w przypadku wielu kryteriów łatwiej sterować symulacją ustawiając kolejne poziomy aspiracji i rezerwacji dla każdego kryterium.
+\item Na pytanie postawione w zadaniu o wyznaczenie minimalnego kosztu przy możliwości obsługi jak największego względnego wzrostu zapotrzebowań, odpowiedź jest następująca. Nie da się znaleźć jednoznacznego rozwiązania. Bowiem wraz ze wzrostem produkcji koszt będzie zawsze rosnąć. Trzeba więc zdecydować się na pewien kompromis. Po analizie rysunku \ref{fig:plot}. można powiedzieć, że najbardziej warto to zrobić przy mniejszym stopniu nadprodukcji energii ponad normę, gdzie wykres jest najmniej stromy. Może być to zatem okolica punktu \textbf{PMPO 2}, czyli nadprodukcja rzędu ok. 8\% - 10\%. Warto wspomnieć, że tak naprawdę my jako decydenci w elektrowni mamy ograniczone możliwości sterowania produkcją energii. Z praw fizyki wynika, że generatory mają taką moc, jakie panuje w danym momencie obciążenie linii zasilających przez wszystkie odbiorniki w sieci energetycznej. Tak więc nie mamy na to dużego wpływu. Należy jedynie uważać, aby generatory nie przekraczały swoich mocy znamionowych. Można rozważać sztuczną nadprodukcję energii, aby magazynować ją np. w akumulatorach, ale z powodu małej sprawności jest to bez sensu i lepiej przesyłać energię na bieżąco. Wyjątkiem są np. elektrownie wiatrowe lub słoneczne, gdzie musimy magazynować energię, ponieważ zjawiska pogodowe nie zawsze są w stanie dostarczać nam jej dostatecznie dużo, kiedy akurat jej potrzebujemy.
+\end{enumerate}
 
 %\printbibliography
 
